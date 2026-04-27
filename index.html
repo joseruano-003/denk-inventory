@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Denk Pharma Guatemala — Control de Inventario</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#ffffff;--bg2:#f5f5f5;--bg3:#ececec;--text:#1a1a1a;--text2:#555;--text3:#999;--border:#e0e0e0;--border2:#cccccc;--blue:#185FA5;--green:#0F6E56;--brown:#854F0B;--gray:#5F5E5A;--purple:#5B2C8D;--red-bg:rgba(220,38,38,.08);--yellow-bg:rgba(202,138,4,.09);--green-bg:rgba(22,163,74,.07);--radius:10px;--radius-sm:6px;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SF Mono','Fira Code','Courier New',monospace;}
+@media(prefers-color-scheme:dark){:root{--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:#2e2e2e;--border2:#3a3a3a;}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 20px;}
+.header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.eyebrow{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;}
+h1{font-size:22px;font-weight:500;margin:3px 0 8px;}
+.badges{display:flex;gap:7px;flex-wrap:wrap;}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--text2);background:var(--bg2);border:.5px solid var(--border2);border-radius:var(--radius-sm);padding:3px 9px;}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.header-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.btn-up{padding:7px 14px;border-radius:var(--radius-sm);border:.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:12px;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;}
+.btn-up:hover{background:var(--bg2);color:var(--text);}
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px;margin-bottom:18px;}
+.kc{background:var(--bg2);border-radius:var(--radius);padding:13px 14px 11px;}
+.kl{font-size:11px;color:var(--text2);margin-bottom:3px;}
+.kv{font-size:22px;font-weight:500;font-family:var(--mono);}
+.ks{font-size:10px;color:var(--text3);margin-top:2px;}
+.cr{display:grid;grid-template-columns:1fr 195px;gap:10px;margin-bottom:18px;}
+@media(max-width:640px){.cr{grid-template-columns:1fr;}}
+.panel{background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+.ptitle{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.cw{position:relative;height:148px;}
+.leg{display:flex;gap:12px;flex-wrap:wrap;margin-top:9px;}
+.leg span{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.leg i{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0;}
+.sem{border-left:3px solid;padding:7px 9px;margin-bottom:6px;}
+.sem .st{font-size:11px;font-weight:600;}
+.sem .ss{font-size:11px;color:var(--text2);}
+.stags{border-top:.5px solid var(--border);padding-top:8px;margin-top:4px;display:flex;gap:12px;font-family:var(--mono);font-size:11px;}
+.ft{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:7px;}
+.ltabs{display:flex;gap:5px;flex-wrap:wrap;}
+.ltab{padding:4px 13px;border-radius:var(--radius-sm);border:.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:12px;font-family:var(--font);font-weight:500;transition:background .12s;}
+.ltab:hover:not(.a){background:var(--bg2);}
+.ltab.a{color:#fff;border-color:transparent;}
+.ltab[data-l="T"].a{background:#444;}
+.ltab[data-l="CARDIO"].a{background:var(--blue);}
+.ltab[data-l="FARMA"].a{background:var(--green);}
+.ltab[data-l="NUTRITION"].a{background:var(--brown);}
+.ltab[data-l="COMPANY"].a{background:var(--gray);}
+.ebtns{display:flex;gap:6px;}
+.bsm{padding:4px 10px;border-radius:var(--radius-sm);border:.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:11px;font-family:var(--font);}
+.bsm:hover{background:var(--bg2);}
+.fr{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.srch{padding:7px 12px;border-radius:var(--radius-sm);border:.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:12px;font-family:var(--font);outline:none;width:190px;}
+.srch:focus{border-color:var(--blue);}
+.fb{padding:5px 11px;border-radius:var(--radius-sm);border:.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:12px;font-family:var(--font);}
+.fb.a{background:rgba(24,95,165,.12);color:var(--blue);border-color:rgba(24,95,165,.3);}
+.fb:hover:not(.a){background:var(--bg2);}
+.tw{overflow-x:auto;border:.5px solid var(--border);border-radius:var(--radius);}
+table{width:100%;border-collapse:collapse;font-size:11.5px;}
+thead th{padding:9px 11px;text-align:right;font-size:9.5px;font-weight:600;color:var(--text2);border-bottom:.5px solid var(--border);white-space:nowrap;background:var(--bg2);text-transform:uppercase;letter-spacing:.04em;}
+thead th:first-child{text-align:left;}
+tbody td{padding:6px 11px;text-align:right;border-bottom:.5px solid var(--border);font-family:var(--mono);color:var(--text);}
+tbody td:first-child{text-align:left;font-family:var(--font);}
+tr.pr{cursor:pointer;}
+tr.pr td{background:var(--bg2);font-weight:500;}
+tr.pr:hover td{background:var(--bg3);}
+tr.lr td{font-size:11px;}
+tr.lr.rr td{background:var(--red-bg);}
+tr.lr.ry td{background:var(--yellow-bg);}
+tr.lr.rg td{background:var(--green-bg);}
+tr.lr:hover td{background:rgba(128,128,128,.07);}
+tr.lr.hidden{display:none;}
+tr.pr.rr td{border-left:3px solid #dc2626;}
+tr.pr.ry td{border-left:3px solid #ca8a04;}
+tr.pr.rg td{border-left:3px solid #16a34a;}
+.chv{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:4px;margin-right:4px;transition:transform .15s;flex-shrink:0;color:var(--text3);}
+.chv.open{transform:rotate(90deg);}
+.chv svg{width:10px;height:10px;}
+.no-lots .chv{opacity:0;pointer-events:none;}
+.tp{color:#16a34a;font-weight:600;font-family:var(--mono);}
+.tn{color:#dc2626;font-weight:600;font-family:var(--mono);}
+.vr{color:#dc2626;font-weight:600;}.vy{color:#ca8a04;font-weight:600;}.vg{color:#16a34a;font-weight:600;}
+.pill{display:inline-block;font-size:9px;font-weight:600;padding:1px 6px;border-radius:3px;margin-left:7px;vertical-align:middle;letter-spacing:.04em;}
+.pC{background:rgba(24,95,165,.15);color:var(--blue);}
+.pF{background:rgba(15,110,86,.15);color:var(--green);}
+.pN{background:rgba(133,79,11,.15);color:var(--brown);}
+.pO{background:rgba(95,94,90,.15);color:var(--gray);}
+.lc{font-size:10px;color:var(--text3);font-family:var(--mono);margin-left:7px;}
+.trb{font-size:9px;font-weight:500;padding:1px 5px;border-radius:3px;background:rgba(91,44,141,.12);color:var(--purple);margin-left:5px;}
+.footer{font-size:10px;color:var(--text3);margin-top:10px;text-align:right;font-family:var(--mono);}
+.mu{color:var(--text3);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <p class="eyebrow">Denk Pharma Guatemala</p>
+    <h1>Control de Inventario</h1>
+    <div class="badges">
+      <span class="badge" id="b-dasa"><span class="dot" style="background:#0F6E56"></span>DASA • 27/04/2026</span>
+      <span class="badge" id="b-merc" style="opacity:.4"><span class="dot" style="background:#888"></span>Mercafarma • pendiente</span>
+      <span class="badge" id="b-lank" style="opacity:.4"><span class="dot" style="background:#888"></span>Lanquetin • pendiente</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <label class="btn-up">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5v7M4.5 4 7 1.5 9.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.5 10v1.5A1 1 0 002.5 12.5h9a1 1 0 001-1V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Agregar reporte
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFile(event)" style="display:none">
+    </label>
+  </div>
+</div>
+
+<div class="kg" id="kg"></div>
+
+<div class="cr">
+  <div class="panel">
+    <p class="ptitle">Stock por línea de producto</p>
+    <div class="cw"><canvas id="ch"></canvas></div>
+    <div class="leg">
+      <span><i style="background:var(--blue)"></i>Mercafarma</span>
+      <span><i style="background:var(--green)"></i>DASA</span>
+      <span><i style="background:var(--brown)"></i>Lanquetin</span>
+    </div>
+  </div>
+  <div class="panel">
+    <p class="ptitle">Semáforo de vencimiento</p>
+    <div class="sem" style="border-color:#16a34a;background:var(--green-bg)"><div class="st" style="color:#16a34a">Verde — OK</div><div class="ss">Más de 12 meses</div></div>
+    <div class="sem" style="border-color:#ca8a04;background:var(--yellow-bg)"><div class="st" style="color:#ca8a04">Amarillo — Atención</div><div class="ss">7 a 12 meses</div></div>
+    <div class="sem" style="border-color:#dc2626;background:var(--red-bg)"><div class="st" style="color:#dc2626">Rojo — Crítico</div><div class="ss">6 meses o menos</div></div>
+    <div class="stags"><span class="tp">(+) Con stock</span><span class="tn">(-) Sin stock</span></div>
+  </div>
+</div>
+
+<div class="ft">
+  <div class="ltabs">
+    <button class="ltab a" data-l="T" onclick="setL('T',this)">Todas</button>
+    <button class="ltab" data-l="CARDIO" onclick="setL('CARDIO',this)">CARDIO</button>
+    <button class="ltab" data-l="FARMA" onclick="setL('FARMA',this)">FARMA</button>
+    <button class="ltab" data-l="NUTRITION" onclick="setL('NUTRITION',this)">NUTRITION</button>
+    <button class="ltab" data-l="COMPANY" onclick="setL('COMPANY',this)">COMPANY</button>
+  </div>
+  <div class="ebtns">
+    <button class="bsm" onclick="expandAll()">Expandir todo</button>
+    <button class="bsm" onclick="collapseAll()">Contraer todo</button>
+  </div>
+</div>
+<div class="fr">
+  <input class="srch" type="text" placeholder="Buscar producto o marca..." oninput="applyF()" id="si">
+  <button class="fb a" onclick="setS('all',this)">Todos</button>
+  <button class="fb" onclick="setS('ss',this)">Sin stock</button>
+  <button class="fb" onclick="setS('cr',this)">Críticos ≤6m</button>
+  <button class="fb" onclick="setS('wa',this)">Advertencia 7–12m</button>
+  <button class="fb" onclick="setS('tr',this)">En tránsito</button>
+</div>
+
+<div class="tw">
+  <table>
+    <thead><tr>
+      <th style="text-align:left;min-width:210px;">PRODUCTO / LOTE</th>
+      <th>MERCAFARMA</th><th>DASA</th><th>LANQUETIN</th>
+      <th>STOCK TOTAL</th><th>TRÁNSITO</th><th>MESES VIDA</th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+  </table>
+</div>
+<p class="footer"><span id="rc"></span> · Actualizado: <span id="ud"></span></p>
+</div>
+
+<script>
+const CAT=[
+["AMLO-DENK 10MG X 50 COMPRIMIDOS","AMLO DENK","CARDIO"],
+["AMLO-DENK 5MG X 50 COMPRIMIDOS","AMLO DENK","CARDIO"],
+["AMOXICLAV-DENK 1000/125 MG X 12 SOBRES","AMOXICLAV DENK","FARMA"],
+["AMOXICLAV-DENK 1000/125 MG X 48 SOBRES","AMOXICLAV DENK","FARMA"],
+["AMVA DENK 10/160 MG X 28 COMPRIMIDOS","AMVA","CARDIO"],
+["AMVA DENK 5/160 MG X 28 COMPRIMIDOS","AMVA","CARDIO"],
+["AMVA DENK 5/80 MG X 28 COMPRIMIDOS","AMVA","CARDIO"],
+["ATENOLOL DENK 50MG X 30 COMPRIMIDOS","ATENOLOL DENK","FARMA"],
+["AXABAN-DENK 2.5 MG X 60 COMPRIMIDOS","AXABAN","CARDIO"],
+["AXABAN-DENK 5MG X 60 COMPRIMIDOS","AXABAN","CARDIO"],
+["AZITRO DENK 500MG X 3 COMPRIMIDOS","AZITRO DENK","FARMA"],
+["BRAIN ACTIVE DENK X 30 COMPRIMIDOS","BRAIN ACTIVE","NUTRITION"],
+["CALCIUM ACTIVE DENK X 20 COMP. EFERV.","CALCIUM ACTIVE","NUTRITION"],
+["CARVEDI DENK 25MG X 30 COMPRIMIDOS","CARVEDI DENK","CARDIO"],
+["CARVEDI DENK 6.25MG X 30 COMPRIMIDOS","CARVEDI DENK","CARDIO"],
+["CIPRO DENK 500MG X 10 COMPRIMIDOS","CIPROFLOXACINA DENK","FARMA"],
+["CLOPI-DENK 75 MG X 30 COMPRIMIDOS","CLOPI-DENK","CARDIO"],
+["COLOSAR DENK 100/12.5 MG X 28 COMPRIMIDOS","COLOSAR DENK","CARDIO"],
+["COLOSAR DENK 50/12.5 MG X 28 COMPRIMIDOS","COLOSAR DENK","CARDIO"],
+["D3 ACTIVE DENK X 100 COMPRIMIDOS","D3 ACTIVE","COMPANY"],
+["D3 JUNIOR DENK X 100 COMPRIMIDOS","D3 JUNIOR","NUTRITION"],
+["DENK-AIR 10 MG X 28 COMPRIMIDOS RECUBIERTOS","DENK-AIR","FARMA"],
+["DENK-AIR JUNIOR 4 MG X 28 COMPRIMIDOS","DENK-AIR","FARMA"],
+["DENK-AIR JUNIOR 5 MG X 28 COMPRIMIDOS","DENK-AIR","FARMA"],
+["DESLORA-DENK 5MG X 10 COMPRIMIDOS","DESLORA DENK","FARMA"],
+["DICLOFENACO SODICO DENK 75MG/3ML X 5 AMPOLLAS","DICLOFENACO SODICO DENK","FARMA"],
+["DOLOFORTE DENK X 20 COMPRIMIDOS","DOLOFORTE","FARMA"],
+["ENERGY ACTIVE DENK X 12 SOBRES","ENERGY","NUTRITION"],
+["FERTILO FORTE DENK X 30 SOBRES","FERTILO","NUTRITION"],
+["FLUCONA DENK 150MG X 1 CAPSULA","FLUCONA DENK","FARMA"],
+["FURO DENK 40MG X 100 COMPRIMIDOS","FURO","CARDIO"],
+["GLIMEPIRIDA DENK 2MG X 30 COMPRIMIDOS","GLIMEPIRIDA DENK","FARMA"],
+["GLIMEPIRIDA DENK 3MG X 30 COMPRIMIDOS","GLIMEPIRIDA DENK","FARMA"],
+["IBU DENK 600MG X 100 COMPRIMIDOS","IBU-DENK","FARMA"],
+["IMMUN ACTIVE + D3 DENK X 20 SOBRES","IMMUN ACTIVE DENK","NUTRITION"],
+["IMMUN ACTIVE DENK X 20 SOBRES","IMMUN ACTIVE DENK","NUTRITION"],
+["LADY ACTIVE DENK X 30 CAPSULAS","LADY ACTIVE","NUTRITION"],
+["LOSAR DENK 100MG X 28 COMPRIMIDOS","COLOSAR DENK","CARDIO"],
+["LOSAR DENK 50MG X 28 COMPRIMIDOS","COLOSAR DENK","CARDIO"],
+["LUXAFLON DENK 500MG X 10 COMPRIMIDOS","LUXAFLON DENK","FARMA"],
+["MAGNES ACTIVE DENK 300MG X 30 SOBRES","MAGNES","COMPANY"],
+["MAGNES DIRECT DENK 400MG X 30 SOBRES","MAGNES","COMPANY"],
+["MAN ACTIVE DENK X 60 CAPSULAS","MAN ACTIVE","NUTRITION"],
+["METFORMINA DENK 1000MG X 30 COMPRIMIDOS","METFORMINA DENK","FARMA"],
+["METFORMINA DENK 500MG X 30 COMPRIMIDOS","METFORMINA DENK","FARMA"],
+["METFORMINA DENK 850MG X 30 COMPRIMIDOS","METFORMINA DENK","FARMA"],
+["NERALIV DENK 150MG X 28 CÁPSULAS","NERALIV","FARMA"],
+["NERALIV DENK 75MG X 28 CÁPSULAS","NERALIV","FARMA"],
+["NIFEDI-DENK 10MG X 30 COMPRIMIDOS","NIFEDI DENK","FARMA"],
+["NIFEDI-DENK 20MG X 30 COMPRIMIDOS","NIFEDI DENK","FARMA"],
+["ON SETRON DENK 4 MG X 6 COMPRIMIDOS","ON SETRON","FARMA"],
+["ON SETRON DENK 8 MG X 6 COMPRIMIDOS","ON SETRON","FARMA"],
+["PANTODENK 20MG X 28 COMPRIMIDOS","PANTO DENK","COMPANY"],
+["PANTODENK 40MG X 28 COMPRIMIDOS","PANTO DENK","COMPANY"],
+["PARACETAMOL DENK 500MG X 20 COMPRIMIDOS","PARA DENK","FARMA"],
+["PARACO-DENK 500/30 MG X 20 COMPRIMIDOS","PARA DENK","FARMA"],
+["PARADENK 250MG X 10 SUPOSITORIOS","PARA DENK","FARMA"],
+["ROSU DENK 10MG X 30 COMPRIMIDOS","ROSU DENK","CARDIO"],
+["ROSU DENK 20MG X 30 COMPRIMIDOS","ROSU DENK","CARDIO"],
+["TORASEMIDA DENK 10MG X 30 COMPRIMIDOS","TORASEMIDA DENK","CARDIO"],
+["TORASEMIDA DENK 5MG X 30 COMPRIMIDOS","TORASEMIDA DENK","CARDIO"],
+["VITACTIVE B12 DENK X 30 CAPSULAS","VITACTIVE B12 DENK","NUTRITION"],
+["PROMO 2 CIPRO DENK 500MG X 10 COMPRIMIDOS","CIPROFLOXACINA DENK","FARMA"],
+["PROMO 2 PANTO DENK 40MG X 28 COMPRIMIDOS","PANTO DENK","COMPANY"],
+];
+
+// [cat_idx, lote, fecha, merc, dasa, lank, transito, meses]
+const SEED=[
+[0,"28444","30/11/2026",0,288,0,0,7],[0,"29500","30/11/2027",0,465,0,0,19],
+[1,"29496","30/08/2027",0,682,0,0,16],
+[2,"30074","28/02/2027",0,592,0,0,10],
+[4,null,null,0,0,0,320,null],
+[5,"180736","30/09/2027",0,390,0,0,17],
+[7,"5943","30/01/2028",0,704,0,0,21],
+[8,"30524130","28/02/2027",0,207,0,0,10],
+[11,"30552","30/11/2026",0,23,0,0,7],[11,"31073","30/06/2027",0,278,0,0,14],
+[12,"30692","30/09/2027",0,61,0,0,17],[12,"31182","30/07/2028",0,78,0,0,27],
+[13,"29898","30/01/2027",0,456,0,0,9],
+[14,"31501","30/10/2028",0,147,0,288,30],
+[15,"29312","30/12/2026",0,31,0,0,8],[15,"31868","30/12/2028",0,518,0,0,32],
+[17,"29969","30/04/2027",0,6,0,0,12],[17,"30179","30/07/2027",0,55,0,0,15],[17,"30516","30/12/2027",0,301,0,0,20],
+[18,"30727","30/07/2028",0,359,0,0,27],
+[19,"31438","30/06/2027",0,750,0,0,14],
+[21,"29090","28/02/2027",0,36,0,0,10],
+[24,"B1X","30/07/2027",0,187,0,0,15],
+[26,"31948","30/05/2027",0,70,0,0,13],
+[27,"30126","30/05/2026",0,4,0,0,1],
+[28,"30143","30/10/2027",0,181,0,0,18],
+[29,"29747","30/05/2027",0,115,0,0,13],
+[30,"AY5","30/03/2027",0,39,0,0,11],
+[31,"28452","30/12/2026",0,109,0,0,8],
+[32,"29101","30/06/2027",0,278,0,0,14],
+[33,"5984","30/12/2026",0,77,0,0,8],
+[35,"29241","28/02/2027",0,200,0,0,10],
+[36,"30921","30/08/2027",0,4,0,320,16],
+[37,"29873","30/07/2027",0,180,0,0,15],
+[39,"31723","30/09/2027",0,480,0,0,17],
+[40,"30045","30/07/2027",0,251,0,0,15],
+[41,"29772","30/06/2027",0,270,0,0,14],
+[42,"31159","30/01/2028",0,174,0,360,21],
+[43,"30467","30/04/2028",0,430,0,0,24],
+[44,null,null,0,0,0,640,null],
+[45,"30283","30/12/2027",0,348,0,0,20],
+[46,"BB4","30/09/2027",0,447,0,0,17],
+[47,"BB3","30/09/2027",0,354,0,0,17],
+[48,"B47","30/08/2027",0,274,0,0,16],
+[49,"31887","30/08/2028",0,695,0,0,28],
+[50,null,null,0,864,0,0,null],
+[51,"32050","30/10/2028",0,432,0,0,30],
+[52,"6556","30/07/2027",0,320,0,0,15],[52,"5451","30/06/2026",0,60,0,0,2],
+[54,"5481","30/07/2027",0,698,0,0,15],
+[55,"6472","30/03/2028",0,205,0,0,23],[55,"5690","30/09/2026",0,243,0,0,5],
+[56,"28464","30/01/2027",0,56,0,0,9],
+[57,"6514","30/05/2027",0,236,0,0,13],
+[58,"6362","28/02/2027",0,76,0,0,10],[58,"6256","30/11/2026",0,207,0,0,7],[58,"6573","30/10/2027",0,360,0,0,18],
+[59,"6067","30/11/2027",0,290,0,0,19],
+[60,"AZX","30/05/2027",0,539,0,0,13],
+[61,"30922","30/01/2027",0,29,0,0,9],[61,"32071","30/11/2027",0,80,0,0,19],[61,"31823","30/08/2027",0,297,0,0,16],
+[62,"29312","30/12/2026",0,15,0,0,8],[62,"37868","30/12/2028",0,100,0,0,32],
+[63,"5757","30/11/2026",0,165,0,0,7],
+];
+
+let allData=[],chart=null,curL='T',curS='all',expanded=new Set();
+
+function build(){
+  allData=CAT.map((c,i)=>({idx:i,nombre:c[0],marca:c[1],linea:c[2],lots:[]}));
+  SEED.forEach(([ci,lote,fecha,merc,dasa,lank,transito,mv])=>{
+    allData[ci].lots.push({lote,fecha,mercafarma:merc,dasa,lanquetin:lank,transito,mesesVida:mv});
+  });
+}
+
+function worstMv(lots){const vs=lots.map(r=>r.mesesVida).filter(v=>v!=null);return vs.length?Math.min(...vs):null;}
+function rc(mv){if(mv==null)return'';return mv<=6?'rr':mv<=12?'ry':'rg';}
+function vc(mv){if(mv==null)return'';return mv<=6?'vr':mv<=12?'vy':'vg';}
+function n(v){return(v!=null&&v>0)?v.toLocaleString('es-GT'):'<span class="mu">—</span>';}
+function pill(l){const m={CARDIO:'pC',FARMA:'pF',NUTRITION:'pN',COMPANY:'pO'};return`<span class="pill ${m[l]||''}">${l}</span>`;}
+
+function renderKPI(){
+  const flat=allData.flatMap(p=>p.lots);
+  const ss=allData.filter(p=>!p.lots.some(r=>r.dasa+r.mercafarma+r.lanquetin>0)).length;
+  const cr=flat.filter(r=>r.mesesVida!=null&&r.mesesVida<=6).length;
+  const wa=flat.filter(r=>r.mesesVida!=null&&r.mesesVida>6&&r.mesesVida<=12).length;
+  const total=flat.reduce((s,r)=>s+(r.dasa||0)+(r.mercafarma||0)+(r.lanquetin||0),0);
+  const tr=flat.reduce((s,r)=>s+(r.transito||0),0);
+  const ks=[
+    {l:"SKUs portafolio",v:CAT.length,c:"inherit"},
+    {l:"Sin stock",v:ss,c:"#ca8a04",s:"productos"},
+    {l:"Críticos ≤6m",v:cr,c:"#dc2626",s:"lotes"},
+    {l:"Advertencia",v:wa,c:"#ca8a04",s:"7–12 meses"},
+    {l:"Stock total",v:total.toLocaleString('es-GT'),c:"#16a34a",s:"unidades"},
+    {l:"En tránsito",v:tr.toLocaleString('es-GT'),c:"var(--purple)",s:"unidades"},
+  ];
+  document.getElementById('kg').innerHTML=ks.map(k=>`<div class="kc"><p class="kl">${k.l}</p><p class="kv" style="color:${k.c}">${k.v}</p>${k.s?`<p class="ks">${k.s}</p>`:''}</div>`).join('');
+}
+
+function renderChart(){
+  const lines=['CARDIO','FARMA','NUTRITION','COMPANY'];
+  const byL=l=>allData.filter(p=>p.linea===l).flatMap(p=>p.lots);
+  if(chart)chart.destroy();
+  chart=new Chart(document.getElementById('ch'),{
+    type:'bar',
+    data:{labels:lines,datasets:[
+      {label:'Mercafarma',data:lines.map(l=>byL(l).reduce((s,r)=>s+(r.mercafarma||0),0)),backgroundColor:'#185FA5',borderRadius:3},
+      {label:'DASA',data:lines.map(l=>byL(l).reduce((s,r)=>s+(r.dasa||0),0)),backgroundColor:'#0F6E56',borderRadius:3},
+      {label:'Lanquetin',data:lines.map(l=>byL(l).reduce((s,r)=>s+(r.lanquetin||0),0)),backgroundColor:'#854F0B',borderRadius:3},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:9}},grid:{color:'rgba(128,128,128,.12)'},border:{dash:[2,2]}}},barPercentage:.75}
+  });
+}
+
+function getF(){
+  const q=document.getElementById('si').value.toLowerCase();
+  return allData.filter(p=>{
+    if(curL!=='T'&&p.linea!==curL)return false;
+    if(!p.nombre.toLowerCase().includes(q)&&!p.marca.toLowerCase().includes(q))return false;
+    const hs=p.lots.some(r=>r.dasa+r.mercafarma+r.lanquetin>0);
+    if(curS==='ss'&&hs)return false;
+    if(curS==='cr'&&!p.lots.some(r=>r.mesesVida!=null&&r.mesesVida<=6))return false;
+    if(curS==='wa'&&!p.lots.some(r=>r.mesesVida!=null&&r.mesesVida>6&&r.mesesVida<=12))return false;
+    if(curS==='tr'&&!p.lots.some(r=>r.transito>0))return false;
+    return true;
+  });
+}
+
+function renderTable(){
+  const data=getF();const rows=[];
+  data.forEach(p=>{
+    const hs=p.lots.some(r=>r.dasa+r.mercafarma+r.lanquetin>0);
+    const tM=p.lots.reduce((s,r)=>s+(r.mercafarma||0),0);
+    const tD=p.lots.reduce((s,r)=>s+(r.dasa||0),0);
+    const tL=p.lots.reduce((s,r)=>s+(r.lanquetin||0),0);
+    const tT=p.lots.reduce((s,r)=>s+(r.transito||0),0);
+    const mv=worstMv(p.lots);
+    const isE=expanded.has(p.idx);
+    const hasLots=p.lots.some(r=>r.lote);
+    const chv=`<span class="chv${isE?' open':''}"><svg viewBox="0 0 10 10" fill="none"><path d="M3 2l4 3-4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+    const lb=p.lots.length?`<span class="lc">${p.lots.length} lote${p.lots.length>1?'s':''}</span>`:'';
+    const trb=tT>0?`<span class="trb">+${tT.toLocaleString('es-GT')} tránsito</span>`:'';
+    rows.push(`<tr class="pr${!hasLots?' no-lots':''} ${rc(mv)}" onclick="toggle(${p.idx},this)"><td><div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${chv}<span class="${hs?'tp':'tn'}">${hs?'(+)':'(-)'}</span>&nbsp;${p.nombre}${pill(p.linea)}${lb}${trb}</div></td><td>${n(tM)}</td><td>${n(tD)}</td><td>${n(tL)}</td><td>${n(tM+tD+tL)}</td><td style="color:var(--purple);font-weight:600">${tT>0?tT.toLocaleString('es-GT'):'<span class="mu">—</span>'}</td><td class="${vc(mv)}">${mv!=null?mv:'<span class="mu">—</span>'}</td></tr>`);
+    p.lots.forEach(r=>{
+      const tot=r.dasa+r.mercafarma+r.lanquetin;
+      const fl=r.fecha&&r.fecha!='—'?`<span style="font-family:var(--mono);font-size:10.5px">${r.fecha}</span>`:'<span class="mu" style="font-size:10px">Sin fecha</span>';
+      const ll=r.lote?`<span style="color:var(--text3);font-size:10px;font-family:var(--mono);margin-left:6px">Lote ${r.lote}</span>`:'';
+      rows.push(`<tr class="lr ${rc(r.mesesVida)} lot-${p.idx}${isE?'':' hidden'}"><td style="padding-left:30px;color:var(--text2)"><span class="${tot>0?'tp':'tn'}">${tot>0?'(+)':'(-)'}</span> ${fl}${ll}</td><td>${n(r.mercafarma)}</td><td>${n(r.dasa)}</td><td>${n(r.lanquetin)}</td><td>${n(tot)}</td><td style="color:var(--purple)">${r.transito>0?r.transito.toLocaleString('es-GT'):'<span class="mu">—</span>'}</td><td class="${vc(r.mesesVida)}">${r.mesesVida!=null?r.mesesVida:'<span class="mu">—</span>'}</td></tr>`);
+    });
+  });
+  if(!rows.length)rows.push(`<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--text3)">Sin resultados</td></tr>`);
+  document.getElementById('tb').innerHTML=rows.join('');
+  document.getElementById('rc').textContent=data.length+' productos';
+}
+
+function toggle(idx,tr){
+  if(!allData[idx].lots.some(r=>r.lote))return;
+  const isE=expanded.has(idx);
+  isE?expanded.delete(idx):expanded.add(idx);
+  tr.querySelector('.chv').classList.toggle('open',!isE);
+  document.querySelectorAll(`.lot-${idx}`).forEach(r=>r.classList.toggle('hidden',isE));
+}
+function expandAll(){getF().forEach(p=>{if(p.lots.length)expanded.add(p.idx);});renderTable();}
+function collapseAll(){expanded.clear();renderTable();}
+function applyF(){renderTable();}
+function setL(l,b){curL=l;document.querySelectorAll('.ltab').forEach(x=>x.classList.remove('a'));b.classList.add('a');renderTable();}
+function setS(s,b){curS=s;document.querySelectorAll('.fb').forEach(x=>x.classList.remove('a'));b.classList.add('a');renderTable();}
+
+function handleFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=evt=>{
+    try{
+      const wb=XLSX.read(evt.target.result,{type:'binary'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const json=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!json.length)return;
+      const keys=Object.keys(json[0]).map(k=>k.toUpperCase());
+      const dist=keys.find(k=>['MERCAFARMA','DASA','LANQUETIN'].includes(k))||'DASA';
+      const pmap={};allData.forEach(p=>pmap[p.nombre.toLowerCase().trim()]=p);
+      json.forEach(r=>{
+        const pn=String(r.PRODUCTO||'').toLowerCase().trim();
+        const prod=pmap[pn];if(!prod)return;
+        const lote=String(r.LOTE||r['N° DE LOTE']||'');
+        const fecha=String(r['FECHA DE VENCIMIENTO']||r.FECHA_VENCIMIENTO||'');
+        const stock=Number(r[dist]||r['STOCK DISPONIBLE']||r.STOCK||0);
+        const transit=Number(r['EN TRÁNSITO']||r.TRANSITO||0);
+        const mv=Number(r['MESES DE VIDA']||r.MESES_VIDA||0)||null;
+        const ex=lote?prod.lots.find(l=>l.lote===lote):null;
+        if(ex){
+          if(dist==='MERCAFARMA')ex.mercafarma=stock;
+          else if(dist==='LANQUETIN')ex.lanquetin=stock;
+          else ex.dasa=stock;
+          ex.transito=(ex.transito||0)+transit;
+        } else if(lote){
+          const nr={lote,fecha,mercafarma:0,dasa:0,lanquetin:0,transito:transit,mesesVida:mv};
+          if(dist==='MERCAFARMA')nr.mercafarma=stock;
+          else if(dist==='LANQUETIN')nr.lanquetin=stock;
+          else nr.dasa=stock;
+          prod.lots.push(nr);
+        }
+      });
+      const bdg=document.getElementById('b-'+dist.toLowerCase().replace('mercafarma','merc').replace('lanquetin','lank'));
+      if(bdg){bdg.style.opacity='1';bdg.querySelector('.dot').style.background=dist==='MERCAFARMA'?'#185FA5':dist==='LANQUETIN'?'#854F0B':'#0F6E56';const d=new Date();bdg.lastChild.textContent=dist+' • '+d.toLocaleDateString('es-GT',{day:'2-digit',month:'2-digit',year:'numeric'});}
+      renderKPI();renderChart();renderTable();
+    }catch(err){alert('Error leyendo archivo: '+err.message);}
+  };
+  reader.readAsBinaryString(file);
+}
+
+function init(){
+  build();renderKPI();renderChart();renderTable();
+  document.getElementById('ud').textContent=new Date().toLocaleDateString('es-GT',{day:'2-digit',month:'long',year:'numeric'});
+}
+init();
+</script>
+</body>
+</html>
